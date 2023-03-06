@@ -7,7 +7,7 @@ const router = Router();
  */
 // Get all
 router.get("/product", (req, res) => {
-  res.json({ message: "No products to show" });
+    res.json({message: "No products to show"});
 });
 // Get one
 router.get("/product/:id", (req, res) => {});

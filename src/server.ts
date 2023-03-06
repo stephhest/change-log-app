@@ -1,21 +1,17 @@
 import express from 'express';
 import router from './router';
 import morgan from 'morgan';
+import cors from 'cors';
+import { protect } from './modules/auth';
+import { createNewUser, signin } from './handlers/user';
 
 const app = express();
 
-// Morgan middleware - req logs - global for the app
-// every request for this app will use this middleware
-// before going to corresponding path handler
 app.use(morgan('dev'));
-
-// Express json middleware
-// allows client to say json
 app.use(express.json());
-
-// Express urlencoded middleware
-// helps decode query strings in urls
 app.use(express.urlencoded({extended: true}));
+app.use(cors())
+
 
 app.get('/', (req, res) => {
     console.log("hello from express");
@@ -26,6 +22,9 @@ app.get('/', (req, res) => {
     res.json({message: 'hello'});
 })
 
-app.use('/api', router);
+app.use('/api', protect, router);
+
+app.post('/user', createNewUser);
+app.post('/signin', signin);
 
 export default app;
