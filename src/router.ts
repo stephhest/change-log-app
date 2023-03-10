@@ -1,52 +1,92 @@
 import { Router } from "express";
+import { body } from "express-validator";
+import { handleInputErrors } from "./modules/middleware";
+import { getProducts,
+        getOneProduct,
+        createProduct,
+        updateProduct,
+        deleteProduct } from "./handlers/product";
+import { createUpdate, deleteUpdate, getOneUpdate, getUpdates, updateUpdate } from "./handlers/update";
+
 
 const router = Router();
 
-/**
- * PRODUCTS
- */
-// Get all
-router.get("/product", (req, res) => {
-    res.json({message: "No products to show"});
-});
-// Get one
-router.get("/product/:id", (req, res) => {});
-// Create new
-router.post("/product", (req, res) => {});
-// Update one
-router.put("/product/:id", (req, res) => {});
-// Delete one
-router.delete("/product/:id", (req, res) => {});
+
+/*** PRODUCTS ***/
+router.get("/product", getProducts);
+
+router.get("/product/:id", getOneProduct);
+
+router.post("/product",
+    body('name').isString(),
+    handleInputErrors,
+    createProduct);
+
+router.put("/product/:id",
+    body('name').isString(),
+    handleInputErrors,
+    updateProduct);
+
+router.delete("/product/:id", deleteProduct);
 
 
-/**
- * UPDATES
- */
-// Get all
-router.get("/update", (req, res) => {});
-// Get one
-router.get("/update/:id", (req, res) => {});
-// Create new
-router.post("/update", (req, res) => {});
-// Update one
-router.put("/update/:id", (req, res) => {});
-// Delete one
-router.delete("/update/:id", (req, res) => {});
+/*** UPDATES ***/
+router.get("/update", getUpdates);
+
+router.get("/update/:id", getOneUpdate);
+
+router.post("/update",
+    body('title').exists().isString(),
+    body('body').exists().isString(),
+    body('productId').exists().isString(),
+    handleInputErrors,
+    createUpdate);
+
+router.put("/update/:id",
+    body('title').optional().isString(),
+    body('body').optional().isString(),
+    body('status').isIn([
+        "IN_PROGRESS",
+        "LIVE",
+        "DEPRECATED",
+        "ARCHIVED",
+    ]).optional(),
+    body('version').optional(),
+    handleInputErrors,
+    updateUpdate);
+
+router.delete("/update/:id", deleteUpdate);
 
 
-/**
- * UPDATE POINTS
- */
-// Get all
-router.get("/updatepoint", (req, res) => {});
-// Get one
-router.get("/updatepoint/:id", (req, res) => {});
-// Create new
-router.post("/updatepoint", (req, res) => {});
-// Update one
-router.put("/updatepoint/:id", (req, res) => {});
-// Delete one
-router.delete("/updatepoint/:id", (req, res) => {});
+/*** UPDATE POINTS ***/
+router.get("/updatepoint");
 
+router.get("/updatepoint/:id");
+
+router.post("/updatepoint",
+    body('name').exists().isString(),
+    body('description').exists().isString(),
+    body('updateId').exists().isString(),
+    handleInputErrors);
+
+router.put("/updatepoint/:id",
+    body('name').optional().isString(),
+    body('description').optional().isString(),
+    handleInputErrors);
+
+router.delete("/updatepoint/:id");
+
+
+// API Error Handler
+router.use((err, req, res, next) => {
+    console.log(err);
+    if (err.type === 'PrismaClientKnownRequestError') {
+        res.status(400);
+        res.json({message: `${err.dataModel} does not exist and/or user is not authorized to access`})
+    } else {
+        res.status(500);
+        res.json({message: "Server Error"});
+    }
+})
 
 export default router;
